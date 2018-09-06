@@ -1,0 +1,33 @@
+from openalea.plantgl.all import Vector3
+from openalea.mtg import *
+from openalea.mtg.io import mtg2axialtree
+
+
+def mtg2lstring(mtg):
+    # define the parameter names
+    parameters = ['tipposition', 'bottomdiameter', 'topdiameter']
+    # define the name of modules to import and their parameters  
+    moduldef = { 'S': parameters, 'U' : parameters, 'V' : parameters }
+    lstring = mtg2axialtree(mtg, moduldef)
+    return lstring
+
+Axiom:
+  initialmtg = MTG(r'D:\Documents\Lusignan\Modeles\walnut.mtg')
+  xx,yy,zz = initialmtg.property('XX'),initialmtg.property('YY'),initialmtg.property('ZZ')
+  # recompose the tipposition property from the 3 properties xx,yy,zz
+  tipposition = dict([(i,(x,yy[i],zz[i])) for i,x in xx.iteritems()])
+  initialmtg.properties()['tipposition'] = tipposition
+  
+  PlantFrame(initialmtg, scale = 3)
+  lstring = mtg2lstring(initialmtg)
+  nsproduce(lstring)
+
+production:
+
+interpretation:
+S(tippos, bottomdiam, topdiam):
+  produce _(bottomdiam)LineTo(tippos,topdiam)
+U(tippos, bottomdiam, topdiam):
+  produce _(bottomdiam)LineTo(tippos,topdiam)
+V(tippos, bottomdiam, topdiam):
+  produce_(bottomdiam)LineTo(tippos,topdiam) 

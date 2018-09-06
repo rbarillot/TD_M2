@@ -1,0 +1,116 @@
+from openalea.plantgl.all import *
+from openalea.mtg import *
+from openalea.mtg.io import mtg2axialtree
+from scipy import cos, sin, sqrt, arccos, arcsin, degrees
+import numpy as np
+
+initialmtg = MTG(r'D:\Documents\Lusignan\Modeles\LD 210610\LD 210610\Fet-LD-F2.mtg')
+plant_origin = (initialmtg.get_vertex_property(1)['XX'], initialmtg.get_vertex_property(1)['YY'], initialmtg.get_vertex_property(1)['ZZ']*-1)
+
+scaling_Lmax = 1
+inclination_factor = 1
+
+def compute_length_orientation(mtg):
+  length = {}
+  inclination = {}
+  azimut = {}
+  F_to_Ls_map = {}
+  for vtx in mtg:
+    if not mtg.label(vtx) or mtg.label(vtx) == 'P1':
+      continue
+    elif mtg.label(vtx)[0] in ('L', 'F') or mtg.label(vtx) == 'E1': 
+      basal_position_vtx = vtx-1
+      if mtg.label(vtx)[0] == 'F':
+        x_F = mtg.get_vertex_property(vtx)['XX']
+        y_F = mtg.get_vertex_property(vtx)['YY']
+        z_F = mtg.get_vertex_property(vtx)['ZZ']*-1
+        F_to_Ls_map[vtx] = [[0, 0, 0]]
+        next_vtx = vtx + 1
+        while mtg.label(next_vtx) and mtg.label(next_vtx)[0] == 'L':
+          F_to_Ls_map[vtx].append([mtg.get_vertex_property(next_vtx)['XX'] - x_F , mtg.get_vertex_property(next_vtx)['YY'] - y_F, mtg.get_vertex_property(next_vtx)['ZZ']*-1 - z_F])
+          next_vtx += 1
+          
+    elif mtg.label(vtx) and mtg.label(vtx)[0] == 'E':
+      basal_position_vtx = mtg.parent(vtx)
+    else:
+      continue
+    distal_position = [mtg.get_vertex_property(vtx)['XX'], mtg.get_vertex_property(vtx)['YY'], mtg.get_vertex_property(vtx)['ZZ']]
+    basal_position = [mtg.get_vertex_property(basal_position_vtx)['XX'], mtg.get_vertex_property(basal_position_vtx)['YY'], mtg.get_vertex_property(basal_position_vtx)['ZZ']]
+    # Length
+    curr_length = sqrt((basal_position[0] - distal_position[0])**2 + (basal_position[1] - distal_position[1])**2 + (basal_position[2] - distal_position[2])**2)
+    length[vtx] = curr_length
+    # Orientation
+    curr_inclination = arcsin(abs(distal_position[2] - basal_position[2]) / curr_length)
+    x_projection = distal_position[0] - basal_position[0]
+    curr_azimut = arccos(x_projection / (curr_length * cos(curr_inclination)))
+    inclination[vtx] = degrees(float(curr_inclination))
+    azimut[vtx] = degrees(float(curr_azimut))
+    
+  return length, inclination, azimut, F_to_Ls_map
+
+def extrusion(axis, segment):
+    n = len(axis)
+    points = np.array(list(axis) * 2)
+    seg = segment
+    
+    len_max = axis.getLength()
+    alpha = -2.3
+    beta = -2 * (alpha + sqrt(-alpha))
+    gamma = 2 * sqrt(-alpha) + alpha
+    current_len = 0
+    current_base = [points[0][0], points[0][1], points[0][2]]
+    
+    for p in range (0, n-1):
+        current_len += sqrt((points[p][0] - current_base[0])**2 + (points[p][1] - current_base[1])**2 + (points[p][2] - current_base[2])**2)
+        width = (alpha * (current_len/len_max)**2 + beta * (current_len / len_max) + gamma)
+        points[p] -= seg * width / 2.
+        points[p+n] += seg * width / 2.
+        current_base = [points[p][0], points[p][1], points[p][2]]
+    indices = [(i, i + n, i + n + 1, i + 1) for i in range(n-1)]
+    geom = QuadSet(points, indices)
+    return geom
+
+def mtg2lstring(mtg):
+    # define the parameter names
+    # define the name of modules to import and their parameters  
+    moduldef = {'A': ['XX', 'YY', 'ZZ'], 'E': ['length', 'inclination', 'azimut'], 'F' : ['length', 'inclination', 'azimut', 'F_to_Ls_map']}
+    lstring = mtg2axialtree(mtg, moduldef)
+    return lstring
+    
+Axiom:
+  #print initialmtg.display()
+  length, inclination, azimut, F_to_Ls_map = compute_length_orientation(initialmtg)
+  initialmtg.properties()['length'] = length
+  initialmtg.properties()['inclination'] = inclination
+  initialmtg.properties()['azimut'] = azimut
+  initialmtg.properties()['F_to_Ls_map'] = F_to_Ls_map
+  
+#  PlantFrame(initialmtg, scale = 4)
+  lstring = mtg2lstring(initialmtg)
+  nsproduce (lstring)
+
+production:
+
+interpretation:
+A (x, y, z):
+  produce @M(x - plant_origin[0], y - plant_origin[1], z*-1 - plant_origin[2])
+ 
+E(length, inclination, azimut):
+  produce ;(1) EulerAngles(azimut,inclination,0) F(length)
+
+F(length, inclination, azimut, F_to_Ls_map):
+  polyline = Polyline(F_to_Ls_map)
+  n = polyline.getNormalAt(0).normed()
+  geom = extrusion(polyline, n)
+  color = (30, 116, 26)
+  shp = Shape(geom, Material(color))
+  produce ;(3) EulerAngles(180,90,0) @g(shp)
+###### INITIALISATION ######
+
+__lpy_code_version__ = 1.1
+
+def __initialiseContext__(context):
+	import openalea.plantgl.all as pgl
+	Color_7 = pgl.Material("Color_7" , ambient = (44,195,48) , diffuse = 0.820513 , )
+	Color_7.name = "Color_7"
+	context.turtle.setMaterial(7,Color_7)
