@@ -4,18 +4,22 @@ from openalea.mtg.io import mtg2axialtree
 from scipy import cos, sin, sqrt, arccos, arcsin, degrees
 import numpy as np
 
-initialmtg = MTG(r'D:\Documents\Lusignan\Modeles\LD 210610\LD 210610\Fet-LD-F2.mtg')
-plant_origin = (initialmtg.get_vertex_property(1)['XX'], initialmtg.get_vertex_property(1)['YY'], initialmtg.get_vertex_property(1)['ZZ']*-1)
-
 scaling_Lmax = 1
 inclination_factor = 1
+sp = 'fetuque'
+
+initialmtg = MTG(r'MTG\Fet-LD-F2.mtg')
+plant_origin = (initialmtg.get_vertex_property(1)['XX'], initialmtg.get_vertex_property(1)['YY'], initialmtg.get_vertex_property(1)['ZZ']*-1)
 
 def compute_length_orientation(mtg):
   length = {}
   inclination = {}
   azimut = {}
   F_to_Ls_map = {}
+  espece = {}
+  nom_sp = 'fetuque'
   for vtx in mtg:
+    espece.update({vtx : nom_sp})
     if not mtg.label(vtx) or mtg.label(vtx) == 'P1':
       continue
     elif mtg.label(vtx)[0] in ('L', 'F') or mtg.label(vtx) == 'E1': 
@@ -46,7 +50,7 @@ def compute_length_orientation(mtg):
     inclination[vtx] = degrees(float(curr_inclination))
     azimut[vtx] = degrees(float(curr_azimut))
     
-  return length, inclination, azimut, F_to_Ls_map
+  return length, inclination, azimut, F_to_Ls_map, espece
 
 def extrusion(axis, segment):
     n = len(axis)
@@ -73,38 +77,95 @@ def extrusion(axis, segment):
 def mtg2lstring(mtg):
     # define the parameter names
     # define the name of modules to import and their parameters  
-    moduldef = {'A': ['XX', 'YY', 'ZZ'], 'E': ['length', 'inclination', 'azimut'], 'F' : ['length', 'inclination', 'azimut', 'F_to_Ls_map']}
+    moduldef = {'A': ['XX', 'YY', 'ZZ','species'], 'E': ['length', 'inclination', 'azimut','species'], 'F' : ['length', 'inclination', 'azimut', 'F_to_Ls_map','species']}
     lstring = mtg2axialtree(mtg, moduldef)
     return lstring
+
+
+#fonctions luzerne
+
+def larg_norm(L):
+    if L<0.996:  
+        return -12.268*L**4 + 22.958*L**3 -16.929*L**2 +6.2135*L #leaf Trudeau
+    else:
+        return 0
+
+def larg(L, Lmax, largmax):
+    return larg_norm(L/Lmax)*largmax
+
+def mesh_leaflet(Lmax, largmax, alpha=0., n=8):
+    #liste de pts
+    ls_pt = [Vector3(0.,0.,0.)]
+    for i in range(1, n):
+        Lrel = float(i)/float(n)
+        l = larg(Lrel, Lmax, largmax)
+        ls_pt.append(Vector3(-l/2.*cos(alpha), Lrel*Lmax, l/2.*sin(alpha)))
+        ls_pt.append(Vector3(0., Lrel*Lmax, 0.))
+        ls_pt.append(Vector3(l/2*cos(alpha), Lrel*Lmax, l/2*sin(alpha)))
+    ls_pt.append(Vector3(0., Lmax, 0.))
+
+    #liste d'index
+    ls_ind = [Index3(0,1,2), Index3(0,2,3)]
+    for i in range(1, n):
+        if i< n-1:
+            ls_ind.append(Index3(i*3-2, (i+1)*3-2, (i+1)*3-1))
+            ls_ind.append(Index3(i*3-1, i*3-2, (i+1)*3-1))
+            ls_ind.append(Index3(i*3, i*3-1, (i+1)*3-1))
+            ls_ind.append(Index3(i*3, (i+1)*3-1, (i+1)*3))
+        elif i == n-1:
+            ls_ind.append(Index3(i*3-1, i*3-2, i*3+1))
+            ls_ind.append(Index3(i*3, i*3-1, i*3+1))
+
+    return TriangleSet(Point3Array(ls_pt),Index3Array(ls_ind))
     
 Axiom:
   #print initialmtg.display()
-  length, inclination, azimut, F_to_Ls_map = compute_length_orientation(initialmtg)
+  length, inclination, azimut, F_to_Ls_map, espece = compute_length_orientation(initialmtg)
   initialmtg.properties()['length'] = length
   initialmtg.properties()['inclination'] = inclination
   initialmtg.properties()['azimut'] = azimut
   initialmtg.properties()['F_to_Ls_map'] = F_to_Ls_map
+  initialmtg.properties()['species'] = espece
   
-#  PlantFrame(initialmtg, scale = 4)
+  #  PlantFrame(initialmtg, scale = 4)
   lstring = mtg2lstring(initialmtg)
-  nsproduce (lstring)
+  
+  nsproduce (lstring)  
 
+derivation length : 2
 production:
 
 interpretation:
-A (x, y, z):
+
+
+
+A (x, y, z, espece):
   produce @M(x - plant_origin[0], y - plant_origin[1], z*-1 - plant_origin[2])
  
-E(length, inclination, azimut):
+E(length, inclination, azimut, espece):
   produce ;(1) EulerAngles(azimut,inclination,0) F(length)
 
-F(length, inclination, azimut, F_to_Ls_map):
+F(length, inclination, azimut, F_to_Ls_map, espece):
   polyline = Polyline(F_to_Ls_map)
   n = polyline.getNormalAt(0).normed()
   geom = extrusion(polyline, n)
   color = (30, 116, 26)
   shp = Shape(geom, Material(color))
   produce ;(3) EulerAngles(180,90,0) @g(shp)
+
+#interpretation de la luzerne
+S(length, inclination, azimut, espece):
+  produce ;(7) EulerAngles(azimut,inclination,0) F(length)
+
+U(length, inclination, azimut, espece):
+  lf, la, pe, br, crois = 21./21., 6.5/21., 17./21., 3.6/21., 10./21. #leaf Trudeau
+  alpha = 3.14/8 #degre
+  leaf = mesh_leaflet(lf, la, alpha, 10)
+  inclination *= inclination_factor
+  produce ;(7) EulerAngles(azimut+90, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax) EulerAngles(azimut, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax) EulerAngles(azimut+180, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax)
+
+T(length, inclination, azimut, espece):
+  produce ;(7) EulerAngles(azimut,inclination,0) F(length)
 ###### INITIALISATION ######
 
 __lpy_code_version__ = 1.1

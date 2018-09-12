@@ -6,20 +6,24 @@ from scipy import cos, sin, sqrt, arccos, arcsin, degrees
 initialmtg = MTG(r'MTG\luzerne.mtg')
 scaling_Lmax = 1
 inclination_factor = 1
-
+distance = 100.
+sp = 'luzerne'
 def compute_length_orientation(mtg):
   length = {}
   inclination = {}
   azimut = {}
+  espece = {}
+  nom_sp = 'luzerne'
   for vtx in mtg:
-    if mtg.label(vtx) in ('L1', 'F1', 'E1'): 
+    espece.update({vtx : nom_sp})
+    if mtg.label(vtx) in ('U1', 'T1', 'S1'): 
       basal_position_vtx = vtx-1
-    elif mtg.label(vtx) and mtg.label(vtx)[0] == 'E':
+    elif mtg.label(vtx) and mtg.label(vtx)[0] == 'S':
       basal_position_vtx = mtg.parent(vtx)
     else:
       continue
-    distal_position = [mtg.get_vertex_property(vtx)['XX'], mtg.get_vertex_property(vtx)['YY'], mtg.get_vertex_property(vtx)['ZZ']]
-    basal_position = [mtg.get_vertex_property(basal_position_vtx)['XX'], mtg.get_vertex_property(basal_position_vtx)['YY'], mtg.get_vertex_property(basal_position_vtx)['ZZ']]
+    distal_position = [mtg.get_vertex_property(vtx)['XX']+distance, mtg.get_vertex_property(vtx)['YY'], mtg.get_vertex_property(vtx)['ZZ']]
+    basal_position = [mtg.get_vertex_property(basal_position_vtx)['XX']+distance, mtg.get_vertex_property(basal_position_vtx)['YY'], mtg.get_vertex_property(basal_position_vtx)['ZZ']]
     # Length
     curr_length = sqrt((basal_position[0] - distal_position[0])**2 + (basal_position[1] - distal_position[1])**2 + (basal_position[2] - distal_position[2])**2)
     length[vtx] = curr_length
@@ -30,7 +34,15 @@ def compute_length_orientation(mtg):
     inclination[vtx] = degrees(curr_inclination)
     azimut[vtx] = degrees(curr_azimut)
     
-  return length, inclination, azimut
+#    if mtg.label(vtx)=='E':
+#      mtg.label(vtx) = 'S'
+#    if mtg.label(vtx)=='F':
+#      mtg.label(vtx) = 'T'
+#    if mtg.label(vtx)=='L':
+#      mtg.label(vtx) = 'U'
+#      
+    
+  return length, inclination, azimut, espece
 
 def larg_norm(L):
     if L<0.996:  
@@ -69,16 +81,17 @@ def mesh_leaflet(Lmax, largmax, alpha=0., n=8):
 def mtg2lstring(mtg):
     # define the parameter names
     # define the name of modules to import and their parameters  
-    moduldef = { 'E': ['length', 'inclination', 'azimut'], 'L' : ['length', 'inclination', 'azimut'], 'F' : ['length', 'inclination', 'azimut']}
+    moduldef = { 'S': ['length', 'inclination', 'azimut','species'], 'U' : ['length', 'inclination', 'azimut','species'], 'T' : ['length', 'inclination', 'azimut','species']}
     lstring = mtg2axialtree(mtg, moduldef)
     return lstring
     
 Axiom:
   #print initialmtg.display()
-  length, inclination, azimut = compute_length_orientation(initialmtg)
+  length, inclination, azimut, espece = compute_length_orientation(initialmtg)
   initialmtg.properties()['length'] = length
   initialmtg.properties()['inclination'] = inclination
   initialmtg.properties()['azimut'] = azimut
+  initialmtg.properties()['species'] = espece  
 #  PlantFrame(initialmtg, scale = 4)
   lstring = mtg2lstring(initialmtg)
   nsproduce(lstring)
@@ -86,17 +99,17 @@ Axiom:
 production:
 
 interpretation:
-E(length, inclination, azimut):
+S(length, inclination, azimut, espece):
   produce ;(7) EulerAngles(azimut,inclination,0) F(length)
 
-L(length, inclination, azimut):
+U(length, inclination, azimut, espece):
   lf, la, pe, br, crois = 21./21., 6.5/21., 17./21., 3.6/21., 10./21. #leaf Trudeau
   alpha = 3.14/8 #degre
   leaf = mesh_leaflet(lf, la, alpha, 10)
   inclination *= inclination_factor
   produce ;(7) EulerAngles(azimut+90, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax) EulerAngles(azimut, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax) EulerAngles(azimut+180, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax)
 
-F(length, inclination, azimut):
+T(length, inclination, azimut, espece):
   produce ;(7) EulerAngles(azimut,inclination,0) F(length)
 ###### INITIALISATION ######
 
