@@ -3,10 +3,11 @@ from openalea.mtg import *
 from openalea.mtg.io import mtg2axialtree
 from scipy import cos, sin, sqrt, arccos, arcsin, degrees
 
-initialmtg = MTG(r'MTG\luzerne.mtg')
+initialmtg = MTG(r'MTG\HD_F5_160910_clean.mtg')
 scaling_Lmax = 1
 inclination_factor = 1
-distance = 100.
+scale = 15.
+scale_f = 5.
 rayon = 4.
 def compute_length_orientation(mtg):
   length = {}
@@ -28,11 +29,11 @@ def compute_length_orientation(mtg):
     else:
       continue
     #print (mtg.label(vtx),vtx)
-    distal_position = [mtg.get_vertex_property(vtx)['XX']+distance, mtg.get_vertex_property(vtx)['YY'], mtg.get_vertex_property(vtx)['ZZ']]
+    distal_position = [mtg.get_vertex_property(vtx)['XX'], mtg.get_vertex_property(vtx)['YY'], mtg.get_vertex_property(vtx)['ZZ']]
     #if mtg.label(vtx)=='U':
       #basal_position = [mtg.get_vertex_property(mtg.parent(vtx))['XX']+distance, mtg.get_vertex_property(mtg.parent(vtx))['YY'], mtg.get_vertex_property(mtg.parent(vtx))['ZZ']]
     #else:    
-    basal_position = [mtg.get_vertex_property(basal_position_vtx)['XX']+distance, mtg.get_vertex_property(basal_position_vtx)['YY'], mtg.get_vertex_property(basal_position_vtx)['ZZ']]
+    basal_position = [mtg.get_vertex_property(basal_position_vtx)['XX'], mtg.get_vertex_property(basal_position_vtx)['YY'], mtg.get_vertex_property(basal_position_vtx)['ZZ']]
     # Length
     curr_length = sqrt((basal_position[0] - distal_position[0])**2 + (basal_position[1] - distal_position[1])**2 + (basal_position[2] - distal_position[2])**2)
     length[vtx] = curr_length
@@ -111,17 +112,17 @@ production:
 
 interpretation:
 S(length, inclination, azimut, espece, radius):
-  produce ;(7) EulerAngles(azimut,inclination,0) F(length, 2)
+  produce ;(7) EulerAngles(azimut,inclination,0) F(length/scale, 2/scale)
 
 U(length, inclination, azimut, espece):
   lf, la, pe, br, crois = 21./21., 6.5/21., 17./21., 3.6/21., 10./21. #leaf Trudeau
   alpha = 3.14/8 #degre
   leaf = mesh_leaflet(lf, la, alpha, 10)
   inclination *= inclination_factor
-  produce ;(7) EulerAngles(azimut+90, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax) EulerAngles(azimut, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax) EulerAngles(azimut+180, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax)
+  produce ;(7) EulerAngles(azimut+90, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale) EulerAngles(azimut, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale) EulerAngles(azimut+180, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale)
 
 T(length, inclination, azimut, espece):
-  produce ;(7) EulerAngles(azimut,inclination,0) F(length,0.2)
+  produce ;(7) EulerAngles(azimut,inclination,0) F(length/scale,0.2/scale)
 ###### INITIALISATION ######
 
 __lpy_code_version__ = 1.1
