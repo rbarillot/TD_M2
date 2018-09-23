@@ -3,7 +3,7 @@ from openalea.mtg import *
 from openalea.mtg.io import mtg2axialtree
 from scipy import cos, sin, sqrt, arccos, arcsin, degrees
 
-initialmtg = MTG(r'MTG\HD_F5_160910_clean.mtg')
+initialmtg = MTG(r'MTG\luzerne.mtg')
 scaling_Lmax = 1
 inclination_factor = 1
 distance = 100.
@@ -17,7 +17,9 @@ def compute_length_orientation(mtg):
   radius = {}  
   for vtx in mtg:
     espece.update({vtx : nom_sp})
-    if mtg.label(vtx) in ('U', 'T', 'S'): 
+    if vtx==0:
+      continue
+    elif mtg.label(vtx)[0] in ('U', 'T', 'S'): 
       radius.update({vtx : rayon})
       basal_position_vtx = mtg.parent(vtx)#vtx-1
     elif mtg.label(vtx) and mtg.label(vtx)[0] == 'S':
@@ -25,7 +27,7 @@ def compute_length_orientation(mtg):
       basal_position_vtx = mtg.parent(vtx)
     else:
       continue
-    print (mtg.label(vtx),vtx)
+    #print (mtg.label(vtx),vtx)
     distal_position = [mtg.get_vertex_property(vtx)['XX']+distance, mtg.get_vertex_property(vtx)['YY'], mtg.get_vertex_property(vtx)['ZZ']]
     #if mtg.label(vtx)=='U':
       #basal_position = [mtg.get_vertex_property(mtg.parent(vtx))['XX']+distance, mtg.get_vertex_property(mtg.parent(vtx))['YY'], mtg.get_vertex_property(mtg.parent(vtx))['ZZ']]

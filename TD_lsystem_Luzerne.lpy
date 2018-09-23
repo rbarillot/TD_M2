@@ -17,7 +17,9 @@ def compute_length_orientation(mtg):
   radius = {}  
   for vtx in mtg:
     espece.update({vtx : nom_sp})
-    if mtg.label(vtx) in ('U', 'T', 'S'): 
+    if vtx==0:
+      continue
+    elif mtg.label(vtx)[0] in ('U', 'T', 'S'): 
       radius.update({vtx : rayon})
       basal_position_vtx = mtg.parent(vtx)#vtx-1
     elif mtg.label(vtx) and mtg.label(vtx)[0] == 'S':

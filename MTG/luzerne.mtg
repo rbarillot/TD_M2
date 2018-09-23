@@ -29,7 +29,7 @@ CC	REAL
 Flargeur	REAL
 MTG:
 ENTITY-CODE				XX	YY	ZZ	AA	BB	CC	Flargeur		           
- /P1												          
+ /P
 ^/A1				  35.61	  11.87	  -3.02	-109.17	 -22.16	  37.34
 ^/S1				  35.68	  11.88	  -3.25	-107.99	 -19.08	   3.60	1
 	 +A2			  35.55	  11.81	  -3.18	-114.32	 -21.47	  40.08	1
