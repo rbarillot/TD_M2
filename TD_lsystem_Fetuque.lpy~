@@ -7,7 +7,7 @@ import numpy as np
 scaling_Lmax = 1
 inclination_factor = 1
 scale = 15.
-scale_f = 5.
+scale_f = 4.
 
 initialmtg = MTG(r'MTG\Fet-LD-F2.mtg')
 plant_origin = (initialmtg.get_vertex_property(1)['XX'], initialmtg.get_vertex_property(1)['YY'], initialmtg.get_vertex_property(1)['ZZ']*-1)

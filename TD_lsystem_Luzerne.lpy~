@@ -7,7 +7,7 @@ initialmtg = MTG(r'MTG\HD_F5_160910_clean.mtg')
 scaling_Lmax = 1
 inclination_factor = 1
 scale = 15.
-scale_f = 5.
+scale_f = 4.
 rayon = 4.
 def compute_length_orientation(mtg):
   length = {}
@@ -119,7 +119,7 @@ U(length, inclination, azimut, espece):
   alpha = 3.14/8 #degre
   leaf = mesh_leaflet(lf, la, alpha, 10)
   inclination *= inclination_factor
-  produce ;(7) EulerAngles(azimut+90, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale) EulerAngles(azimut, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale) EulerAngles(azimut+180, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale)
+  produce ;(7) EulerAngles(azimut+90, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale_f) EulerAngles(azimut, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale_f) EulerAngles(azimut+180, 90, 0) +(inclination) @g(leaf, length*scaling_Lmax/scale_f)
 
 T(length, inclination, azimut, espece):
   produce ;(7) EulerAngles(azimut,inclination,0) F(length/scale,0.2/scale)
