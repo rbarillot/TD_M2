@@ -45,11 +45,12 @@ def compute_length_orientation(mtg):
     curr_length = sqrt((basal_position[0] - distal_position[0])**2 + (basal_position[1] - distal_position[1])**2 + (basal_position[2] - distal_position[2])**2)
     length[vtx] = curr_length
     # Orientation
-    curr_inclination = arcsin(abs(distal_position[2] - basal_position[2]) / curr_length)
-    x_projection = distal_position[0] - basal_position[0]
-    curr_azimut = arccos(x_projection / (curr_length * cos(curr_inclination)))
-    inclination[vtx] = degrees(float(curr_inclination))
-    azimut[vtx] = degrees(float(curr_azimut))
+    if curr_length > 0:
+      curr_inclination = arcsin(abs(distal_position[2] - basal_position[2]) / curr_length)
+      x_projection = distal_position[0] - basal_position[0]
+      curr_azimut = arccos(x_projection / (curr_length * cos(curr_inclination)))
+      inclination[vtx] = degrees(float(curr_inclination))
+      azimut[vtx] = degrees(float(curr_azimut))
     
   return length, inclination, azimut, F_to_Ls_map, espece
 

@@ -38,12 +38,13 @@ def compute_length_orientation(mtg):
     curr_length = sqrt((basal_position[0] - distal_position[0])**2 + (basal_position[1] - distal_position[1])**2 + (basal_position[2] - distal_position[2])**2)
     length[vtx] = curr_length
     # Orientation
-    curr_inclination = abs(arcsin((distal_position[2] - basal_position[2]) / curr_length))
-    x_projection = distal_position[0] - basal_position[0]
-    curr_azimut = abs(arccos(x_projection / (curr_length * cos(curr_inclination))))
-    inclination[vtx] = degrees(curr_inclination)
-    azimut[vtx] = degrees(curr_azimut)
-    radius.update({vtx : rayon})
+    if curr_length > 0:
+      curr_inclination = abs(arcsin((distal_position[2] - basal_position[2]) / curr_length))
+      x_projection = distal_position[0] - basal_position[0]
+      curr_azimut = abs(arccos(x_projection / (curr_length * cos(curr_inclination))))
+      inclination[vtx] = degrees(curr_inclination)
+      azimut[vtx] = degrees(curr_azimut)
+      radius.update({vtx : rayon})  
     
 #    if mtg.label(vtx)=='E':
 #      mtg.label(vtx) = 'S'
