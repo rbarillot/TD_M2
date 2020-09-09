@@ -97,10 +97,10 @@ dependencies:
   - numpy=1.19.1=py37h5510c5b_0
   - numpy-base=1.19.1=py37ha3acd2a_0
   - olefile=0.46=py37_0
-  - openalea.deploy=2.1.8=py37hc8dfbb8_2
-  - openalea.lpy=3.4.0=py37h74a9793_1
-  - openalea.mtg=2.0.2=py37_0
-  - openalea.plantgl=3.4.1=py37h6b74c2c_1
+  - openalea.deploy=2.1.8
+  - openalea.lpy=3.4.0
+  - openalea.mtg=2.0.2
+  - openalea.plantgl=3.4.1
   - openssl=1.1.1g=he774522_1
   - packaging=20.4=py_0
   - pandas=1.1.1=py37ha925a31_0
@@ -122,7 +122,7 @@ dependencies:
   - pyqt=5.12.3=py37h6538335_1
   - pysocks=1.7.1=py37_1
   - pytables=3.6.1=py37h1da0976_0
-  - python=3.7.8=h60c2a47_1_cpython
+  - python=3.7.8
   - python-dateutil=2.8.1=py_0
   - python_abi=3.7=1_cp37m
   - pytz=2020.1=py_0
