@@ -8,5 +8,5 @@ dependencies:
   - alinea.caribu
   - openalea.lpy=3.7
   - openalea.mtg
-  #- openalea.plantgl
-  #- pyopengl=3.1.1a1=py37_0
+  - openalea.plantgl
+  - pyopengl
