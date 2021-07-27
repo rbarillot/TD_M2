@@ -9,4 +9,4 @@ dependencies:
   - openalea.lpy
   #- openalea.mtg
   #- openalea.plantgl
-  #- pyopengl
+  - pyopengl
