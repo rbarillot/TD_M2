@@ -4,9 +4,9 @@ channels:
   - fredboudon
   - defaults
 dependencies:
-  - python #=3.8
+  #- python #=3.8
   #- alinea.caribu
-  #- openalea.lpy
+  - openalea.lpy
   #- openalea.mtg
   #- openalea.plantgl
-  - pyopengl=3.1.5
+  #- pyopengl=3.1.5
