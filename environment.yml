@@ -5,10 +5,8 @@ channels:
   - defaults
 dependencies:
   - python #=3.8
-  - pip:
-    - pyrender
   #- alinea.caribu
   #- openalea.lpy
   #- openalea.mtg
   #- openalea.plantgl
-  - pyopengl
+  - pyopengl=3.1.1
