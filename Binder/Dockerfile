@@ -6,7 +6,6 @@ ARG NB_UID=1000
 COPY . /home/${NB_USER}
 USER root
 RUN chown -R ${NB_UID} /home/${NB_USER}
-RUN conda install openalea.mtg -c openalea
 WORKDIR /home/${NB_USER}
 
 USER ${NB_USER}
