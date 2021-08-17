@@ -1,8 +1,0 @@
-name: TD_M2
-channels:
-  - conda-forge
-  - fredboudon
-  - defaults
-dependencies:
-  - alinea.caribu
-  - openalea.mtg
