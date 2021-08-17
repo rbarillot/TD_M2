@@ -6,6 +6,7 @@ ARG NB_UID=1000
 COPY . /home/${NB_USER}
 USER root
 RUN chown -R ${NB_UID} /home/${NB_USER}
+RUN conda install -c openalea alinea.caribu 
 WORKDIR /home/${NB_USER}
 
 USER ${NB_USER}
