@@ -10,7 +10,7 @@ COPY . /home/${NB_USER}
 USER root
 RUN chown -R ${NB_UID} /home/${NB_USER}
 
-RUN apt-get update
+RUN apt-get update && apt-get install --no-upgrade --no-install-recommends -y libgl1-mesa-dev
 
 RUN apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
