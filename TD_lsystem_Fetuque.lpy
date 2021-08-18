@@ -3,13 +3,14 @@ from openalea.mtg import *
 from openalea.mtg.io import mtg2axialtree
 from scipy import cos, sin, sqrt, arccos, arcsin, degrees
 import numpy as np
+from pathlib import Path
 
 scaling_Lmax = 1
 inclination_factor = 1
 scale = 15.
 scale_f = 5.
 
-initialmtg = MTG(r'MTG\Fet-LD-F2.mtg')
+initialmtg = MTG(Path('MTG/Fet-LD-F2.mtg'))
 plant_origin = (initialmtg.get_vertex_property(1)['XX'], initialmtg.get_vertex_property(1)['YY'], initialmtg.get_vertex_property(1)['ZZ']*-1)
 
 def compute_length_orientation(mtg):

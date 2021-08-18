@@ -2,8 +2,6 @@ FROM jvail/plantgl-jupyter:1.1.0
 
 ENV PATH="/root/miniconda3/bin:${PATH}"
 
-VOLUME ["/MTG"]
-
 ARG PATH="/root/miniconda3/bin:${PATH}"
 ARG NB_USER=jovyan
 ARG NB_UID=1000

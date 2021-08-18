@@ -2,8 +2,10 @@ from openalea.plantgl.all import *
 from openalea.mtg import *
 from openalea.mtg.io import mtg2axialtree
 from scipy import cos, sin, sqrt, arccos, arcsin, degrees
+from pathlib import Path
 
-initialmtg = MTG(r'MTG\HD_F5_160910_clean.mtg')
+
+initialmtg = MTG(Path('MTG/HD_F5_160910_clean.mtg'))
 scaling_Lmax = 1
 inclination_factor = 1
 scale = 15.
