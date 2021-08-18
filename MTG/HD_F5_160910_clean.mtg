@@ -9,14 +9,14 @@ S	3	CONNECTED	FREE	EXPLICIT
 U	3	CONNECTED	FREE	EXPLICIT
 DESCRIPTION:
 LEFT	RIGHT	RELTYPE	MAX
-A	A,T	+	?
-A	A,T	<	?
-T	T,S,U	<	?
-T	T,S,U	+	?
-S	S,U,T	+	?
-S	S,U,T	<	?
-U	U,T,S	<	?
-U	U,T,S	+	?
+A	A,T	+	
+A	A,T	<	
+T	T,S,U	<	
+T	T,S,U	+	
+S	S,U,T	+	
+S	S,U,T	<	
+U	U,T,S	<	
+U	U,T,S	+	
 FEATURES :
 NAME	TYPE
 XX	REAL
