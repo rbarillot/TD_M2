@@ -20,7 +20,7 @@ RUN wget \
     && bash Miniconda3-latest-Linux-x86_64.sh -b \
     && rm -f Miniconda3-latest-Linux-x86_64.sh 
     
-RUN conda install --quiet --yes openalea.mtg alinea.caribu -c conda-forge -c fredboudon
+RUN conda install --quiet --yes scipy openalea.mtg alinea.caribu -c conda-forge -c fredboudon
 
 WORKDIR /home/${NB_USER}
 
