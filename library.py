@@ -31,7 +31,7 @@ def Light_model(lsys, hour=12):
     sun_shp = Shape(Translated(sun_position[1][0] * -50, sun_position[1][1] * -50, sun_position[1][2] * -50, Sphere(0.5)), Material(Color3(60, 60, 15)), id=0)
     scene.add(sun_shp)
 
-    c_scene = CaribuScene(scene=scene, light=[sun], pattern=(BoundingBox(scene).getXMin(), BoundingBox(scene).getYMin(), BoundingBox(scene).getXMax(), BoundingBox(scene).getYMax()))
+    c_scene = CaribuScene(scene=scene, light=[sun])
     # SceneWidget(scene)
     raw, aggregated = c_scene.run()
 
@@ -55,8 +55,8 @@ def Light_model(lsys, hour=12):
 
     fig, ax = plt.subplots()
 
-    # axes[0].bar(1, sum(aggregated['default_band']['Eabs'][k]*aggregated['default_band']['area'][k]*1E-4 for k in aggregated['default_band']['Eabs']), align='center')
-
+    LIE = sum(aggregated['default_band']['Eabs'][k]*aggregated['default_band']['area'][k]*1E-4 for k in aggregated['default_band']['Eabs']) / (sum(aggregated['default_band']['area'].values())*1E-4)
+    print("Efficience interception lumière = {}".format(LIE))
     xindex = [1, 2]
     LABELS = graph.keys()
     ax.bar(xindex, graph.values(), align='center')
@@ -110,18 +110,13 @@ def Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1):
 
     # Makes Lsystem for association
     lsys_luz = Lsystem('TD_lsystem_Luzerne.lpy', {'scaling_Lmax': scaling_Lmax, 'inclination_factor': inclination_factor})
-    # lsys_luz.scaling_Lmax = scaling_Lmax
-    # lsys_luz.inclination_factor = inclination_factor
     lsys_fet = Lsystem('TD_lsystem_Fetuque.lpy')
     lsys_luz_str = lsys_luz.derive()
     lsys_fet_str = lsys_fet.derive()
-    # lsys_asso_str = lsys_luz_str + lsys_fet_str
-    # scene_asso = lsys_luz.sceneInterpretation(lsys_fet_str)
     s_luz = lsys_luz.sceneInterpretation(lsys_luz_str)
     s_fet = lsys_fet.sceneInterpretation(lsys_fet_str)
     scene_asso = s_luz + s_fet
     # Visualisation of the association
-    # scene_asso = lsys_fet.sceneInterpretation(lsys_asso_str)
     scene_out = Scene()
 
     for shp in scene_asso:
