@@ -53,16 +53,16 @@ def Light_model(lsys, hour=12):
         else:
             graph['Tige'] += Eabs / sum(aggregated['default_band']['Eabs'].values())
 
-    fig, axes = plt.subplots(1, 2)
+    fig, ax = plt.subplots()
 
-    axes[0].bar(1, sum(aggregated['default_band']['Eabs'][k]*aggregated['default_band']['area'][k]*1E-4 for k in aggregated['default_band']['Eabs']), align='center')
+    # axes[0].bar(1, sum(aggregated['default_band']['Eabs'][k]*aggregated['default_band']['area'][k]*1E-4 for k in aggregated['default_band']['Eabs']), align='center')
 
     xindex = [1, 2]
     LABELS = graph.keys()
-    axes[1].bar(xindex, graph.values(), align='center')
+    ax.bar(xindex, graph.values(), align='center')
     plt.xticks(xindex, LABELS)
-    axes[1].set_yticks(arange(0, 1.2, 0.2))
-    axes[1].set_ylabel('Proportion interception PAR')
+    ax.set_yticks(arange(0, 1.2, 0.2))
+    ax.set_ylabel('Proportion interception PAR')
     return SceneWidget(colored_scene, size_world=75)
 
 
@@ -131,5 +131,3 @@ def Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1):
 
     colored_scene = Calcul_Caribu(scene_out)
     return SceneWidget(colored_scene, size_world=75)
-
-Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1)
