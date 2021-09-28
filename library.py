@@ -78,8 +78,8 @@ def Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1):
                 t = tuple((float(string_split[0]), tuple((float(string_split[1]), float(string_split[2]), float(string_split[3])))))
                 sky.append(t)
 
-        c_scene = CaribuScene(scene=scene, light=sky)
-        raw, aggregated = c_scene.run()
+        c_scene = CaribuScene(scene=scene, light=sky, pattern=(BoundingBox(scene).getXMin(), BoundingBox(scene).getYMin(), BoundingBox(scene).getXMax(), BoundingBox(scene).getYMax()))
+        raw, aggregated = c_scene.run(direct=True, infinite=True)
 
         # Visualisation
         viewmaponcan, _ = c_scene.plot(raw['default_band']['Eabs'], display=False)
@@ -93,12 +93,10 @@ def Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1):
         graph = {'luzerne': 0, 'fetuque': 0}
         eabs_total = sum(eabs * area for (eabs, area) in zip(aggregated['default_band']['Eabs'].values(), aggregated['default_band']['area'].values()))
         for vid, Eabs in aggregated['default_band']['Eabs'].items():
-            if 'luzerne' in lsys_asso_str[vid]:
+            if vid >= 1000:
                 graph['luzerne'] += Eabs * aggregated['default_band']['area'][vid] / eabs_total
-            elif 'fetuque' in lsys_asso_str[vid]:
-                graph['fetuque'] += Eabs * aggregated['default_band']['area'][vid] / eabs_total
             else:
-                print('vid', vid, lsys_asso_str[vid])
+                graph['fetuque'] += Eabs * aggregated['default_band']['area'][vid] / eabs_total
 
         fig, ax = plt.subplots()
         xindex = [1, 2]
@@ -111,23 +109,26 @@ def Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1):
         return colored_scene
 
     # Makes Lsystem for association
-    lsys_luz = Lsystem('TD_lsystem_Luzerne_tmp.lpy')
-    lsys_luz.scaling_Lmax = scaling_Lmax
-    lsys_luz.inclination_factor = inclination_factor
+    lsys_luz = Lsystem('TD_lsystem_Luzerne.lpy', {'scaling_Lmax': scaling_Lmax, 'inclination_factor': inclination_factor})
+    # lsys_luz.scaling_Lmax = scaling_Lmax
+    # lsys_luz.inclination_factor = inclination_factor
     lsys_fet = Lsystem('TD_lsystem_Fetuque.lpy')
     lsys_luz_str = lsys_luz.derive()
     lsys_fet_str = lsys_fet.derive()
-    lsys_asso_str = lsys_luz_str + lsys_fet_str
-
+    # lsys_asso_str = lsys_luz_str + lsys_fet_str
+    # scene_asso = lsys_luz.sceneInterpretation(lsys_fet_str)
+    s_luz = lsys_luz.sceneInterpretation(lsys_luz_str)
+    s_fet = lsys_fet.sceneInterpretation(lsys_fet_str)
+    scene_asso = s_luz + s_fet
     # Visualisation of the association
-    scene_asso = lsys_fet.sceneInterpretation(lsys_asso_str)
+    # scene_asso = lsys_fet.sceneInterpretation(lsys_asso_str)
     scene_out = Scene()
 
-    for i in range(len(scene_asso)):
-        if 'fetuque' in lsys_asso_str[scene_asso[i].id]:
-            scene_out += Shape(Translated(distance/2, 0, 0, scene_asso[i].geometry), scene_asso[i].appearance, id=scene_asso[i].id)
-        else:
-            scene_out += Shape(Translated(-distance/2, 0, 0, scene_asso[i].geometry), scene_asso[i].appearance, id=scene_asso[i].id)
+    for shp in scene_asso:
+        if shp.id <= 1000:  # Fetuque
+            scene_out += Shape(Translated(distance/2, 0, 0, shp.geometry), shp.appearance, id=shp.id)
+        else:  # Luzerne
+            scene_out += Shape(Translated(-distance/2, 0, 0, shp.geometry), shp.appearance, id=shp.id)
 
     colored_scene = Calcul_Caribu(scene_out)
     return SceneWidget(colored_scene, size_world=75)
