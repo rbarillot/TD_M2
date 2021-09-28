@@ -6,8 +6,8 @@ from pathlib import Path
 
 
 initialmtg = MTG(Path('MTG/HD_F5_160910_clean.mtg'))
-scaling_Lmax = 1
-inclination_factor = 1
+extern(scaling_Lmax = 1)
+extern(inclination_factor = 1)
 scale = 15.
 scale_f = 5.
 rayon = 4.
@@ -135,3 +135,8 @@ def __initialiseContext__(context):
 	Color_7 = pgl.Material("Color_7" , ambient = (44,195,48) , diffuse = 0.820513 , )
 	Color_7.name = "Color_7"
 	context.turtle.setMaterial(7,Color_7)
+	scalars = [('scaling_Lmax', 'Float', 1.0, 0.5, 2.0, 2), ('inclination_factor', 'Float', 1.0, 0.5, 2.0, 2)]
+	context["__scalars__"] = scalars
+	for s in scalars:
+		if not s[1] == "Category" : context[s[0]] = s[2]
+

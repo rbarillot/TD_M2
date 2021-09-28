@@ -1,22 +1,25 @@
 from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.sky_tools import GenSky, GetLight, Gensun, GetLightsSun
 from openalea.plantgl.all import *
+from pgljupyter import SceneWidget
 from numpy import arange
 import matplotlib.pyplot as plt
-
-def run_lsystem(scaling_Lmax=1, inclination_factor=1, lsys=None):
-    lsys.scaling_Lmax = scaling_Lmax
-    lsys.inclination_factor = inclination_factor
-    lstring = lsys.animate()
-    interpretedstring = lsys.interpret(lstring)
-    scene = lsys.sceneInterpretation(interpretedstring)
-    Viewer.display(scene)
-    scene.save(r'plante.bgeom')
-    return
+from openalea.lpy import Lsystem
 
 
-def Light_model(lsys, lstring, hour=12):
-    scene = lsys.sceneInterpretation(lstring)
+def reformat_scene(geometry):
+    nbpolygons = len(geometry.indexList)
+    sc = Scene()
+    for i in range(nbpolygons):
+        pts = [geometry.pointAt(i, j) for j in range(3)]
+        c = geometry.colorList[i]
+        sc.add(Shape(TriangleSet(pts, [list(range(3))]), Material((c.red, c.green, c.blue), 1, transparency=c.clampedAlpha())))
+    return sc
+
+
+def Light_model(lsys, hour=12):
+    lstring = lsys.get_lstring()
+    scene = lsys.scene['scene']
     # Creates sun
     energy = 1
     DOY = 175
@@ -28,15 +31,19 @@ def Light_model(lsys, lstring, hour=12):
     sun_shp = Shape(Translated(sun_position[1][0] * -50, sun_position[1][1] * -50, sun_position[1][2] * -50, Sphere(0.5)), Material(Color3(60, 60, 15)), id=0)
     scene.add(sun_shp)
 
-    c_scene = CaribuScene(scene=scene, light=[sun])
-    Viewer.display(scene)
+    c_scene = CaribuScene(scene=scene, light=[sun], pattern=(BoundingBox(scene).getXMin(), BoundingBox(scene).getYMin(), BoundingBox(scene).getXMax(), BoundingBox(scene).getYMax()))
+    # SceneWidget(scene)
     raw, aggregated = c_scene.run()
 
     # Visualisation
     viewmaponcan, _ = c_scene.plot(raw['default_band']['Eabs'], display=False)
-    Viewer.display(viewmaponcan)
 
-    # Graph
+    #  Fred's hack to display the scene with colors using pgl-jupyter widgets
+    colored_scene = Scene()
+    for shp in viewmaponcan:
+        colored_scene.add(reformat_scene(shp.geometry))
+
+    #  Graph
     graph = {'Tige': 0, 'Feuilles': 0}
     for vid, Eabs in aggregated['default_band']['Eabs'].items():
         if vid == 0:
@@ -46,17 +53,20 @@ def Light_model(lsys, lstring, hour=12):
         else:
             graph['Tige'] += Eabs / sum(aggregated['default_band']['Eabs'].values())
 
-    # Graph
-    fig, ax = plt.subplots()
+    fig, axes = plt.subplots(1, 2)
+
+    axes[0].bar(1, sum(aggregated['default_band']['Eabs'][k]*aggregated['default_band']['area'][k]*1E-4 for k in aggregated['default_band']['Eabs']), align='center')
+
     xindex = [1, 2]
     LABELS = graph.keys()
-    ax.bar(xindex, graph.values(), align='center')
+    axes[1].bar(xindex, graph.values(), align='center')
     plt.xticks(xindex, LABELS)
-    ax.set_yticks(arange(0, 1.2, 0.2))
-    ax.set_ylabel('Proportion interception PAR')
+    axes[1].set_yticks(arange(0, 1.2, 0.2))
+    axes[1].set_ylabel('Proportion interception PAR')
+    return SceneWidget(colored_scene, size_world=75)
 
 
-def Run_Asso(scene_asso, lsys_asso_str, distance=0):
+def Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1):
     def Calcul_Caribu(scene):
         # ciel
         sky_string = GetLight.GetLight(GenSky.GenSky()(1, 'soc', 4, 5))  # (Energy, soc/uoc, azimuts, zenits)
@@ -69,12 +79,15 @@ def Run_Asso(scene_asso, lsys_asso_str, distance=0):
                 sky.append(t)
 
         c_scene = CaribuScene(scene=scene, light=sky)
-        Viewer.display(scene)
         raw, aggregated = c_scene.run()
 
         # Visualisation
         viewmaponcan, _ = c_scene.plot(raw['default_band']['Eabs'], display=False)
-        Viewer.display(viewmaponcan)
+
+        #  Fred's hack to display the scene with colors using pgl-jupyter widgets
+        colored_scene = Scene()
+        for shp in viewmaponcan:
+            colored_scene.add(reformat_scene(shp.geometry))
 
         # Graph
         graph = {'luzerne': 0, 'fetuque': 0}
@@ -85,7 +98,7 @@ def Run_Asso(scene_asso, lsys_asso_str, distance=0):
             elif 'fetuque' in lsys_asso_str[vid]:
                 graph['fetuque'] += Eabs * aggregated['default_band']['area'][vid] / eabs_total
             else:
-                print ('vid', vid, lsys_asso_str[vid])
+                print('vid', vid, lsys_asso_str[vid])
 
         fig, ax = plt.subplots()
         xindex = [1, 2]
@@ -95,10 +108,28 @@ def Run_Asso(scene_asso, lsys_asso_str, distance=0):
         ax.set_yticks(arange(0, 1.2, 0.2))
         ax.set_ylabel("Proportion interception PAR")
 
+        return colored_scene
+
+    # Makes Lsystem for association
+    lsys_luz = Lsystem('TD_lsystem_Luzerne_tmp.lpy')
+    lsys_luz.scaling_Lmax = scaling_Lmax
+    lsys_luz.inclination_factor = inclination_factor
+    lsys_fet = Lsystem('TD_lsystem_Fetuque.lpy')
+    lsys_luz_str = lsys_luz.derive()
+    lsys_fet_str = lsys_fet.derive()
+    lsys_asso_str = lsys_luz_str + lsys_fet_str
+
+    # Visualisation of the association
+    scene_asso = lsys_fet.sceneInterpretation(lsys_asso_str)
     scene_out = Scene()
+
     for i in range(len(scene_asso)):
         if 'fetuque' in lsys_asso_str[scene_asso[i].id]:
-            scene_out += Shape(Translated(distance, 0, 0, scene_asso[i].geometry), scene_asso[i].appearance, id=scene_asso[i].id)
+            scene_out += Shape(Translated(distance/2, 0, 0, scene_asso[i].geometry), scene_asso[i].appearance, id=scene_asso[i].id)
         else:
-            scene_out += Shape(scene_asso[i].geometry, scene_asso[i].appearance, id=scene_asso[i].id)
-    Calcul_Caribu(scene_out)
+            scene_out += Shape(Translated(-distance/2, 0, 0, scene_asso[i].geometry), scene_asso[i].appearance, id=scene_asso[i].id)
+
+    colored_scene = Calcul_Caribu(scene_out)
+    return SceneWidget(colored_scene, size_world=75)
+
+Run_Asso(distance=0, scaling_Lmax=1, inclination_factor=1)
