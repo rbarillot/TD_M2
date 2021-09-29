@@ -57,6 +57,7 @@ def Light_model(lsys, hour=12):
 
     LIE = sum(aggregated['default_band']['Eabs'][k]*aggregated['default_band']['area'][k]*1E-4 for k in aggregated['default_band']['Eabs']) / (sum(aggregated['default_band']['area'].values())*1E-4)
     print("Efficience interception lumière = {}".format(LIE))
+
     xindex = [1, 2]
     LABELS = graph.keys()
     ax.bar(xindex, graph.values(), align='center')
